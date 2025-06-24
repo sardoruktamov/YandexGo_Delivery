@@ -27,9 +27,6 @@ import java.util.UUID;
 @EnableWebSecurity
 public class SpringConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
@@ -37,9 +34,9 @@ public class SpringConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public UserDetailsService userDetailsService() {
         String password = UUID.randomUUID().toString();
-        System.out.println("User Password Mazgi: " + password);
+        System.out.println("User Password: " + password);
 
         UserDetails user = User.builder()
                 .username("user")
@@ -47,16 +44,23 @@ public class SpringConfig {
                 .roles("USER")
                 .build();
 
-        final DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(new InMemoryUserDetailsManager(user));
+        return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
         return authenticationProvider;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> {
             authorizationManagerRequestMatcherRegistry
-                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("api/v1/auth/**").permitAll()
                     .anyRequest()
                     .authenticated();
         }).formLogin(Customizer.withDefaults());
