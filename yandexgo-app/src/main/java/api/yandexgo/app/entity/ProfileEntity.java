@@ -33,10 +33,6 @@ public class ProfileEntity {
     @Enumerated(EnumType.STRING)
     private GeneralStatus status;  // ACTIVE, BLOCK
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProfileRole role = ProfileRole.ROLE_CLIENT; // Dastlab CLIENT bo'ladi
-
     @Column(name = "visible",nullable = false)
     private Boolean visible = Boolean.TRUE;   // profil o'chirilgand FALSE bo'ladiauth.http
 
@@ -100,14 +96,6 @@ public class ProfileEntity {
 
     public void setStatus(GeneralStatus status) {
         this.status = status;
-    }
-
-    public ProfileRole getRole() {
-        return role;
-    }
-
-    public void setRole(ProfileRole role) {
-        this.role = role;
     }
 
     public Boolean getVisible() {

@@ -20,7 +20,10 @@ public class AuthService {
     private ProfileRepository profileRepository;
     @Autowired
     private ProfileRoleService profileRoleService;
-
+    @Autowired
+    private EmailSendingService emailSendingService;
+    @Autowired
+    private ProfileService profileService;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -55,12 +58,29 @@ public class AuthService {
 //        // Usernameni tekshirish email yoki phone ekanligiga >>>PASTDA 2-USUL<<<<<
 //        if (EmailUtil.isEmail(dto.getUsername())){
 //            // send email
-//            emailSendingService.sendEmailForRegistration(dto.getUsername(), entity.getId(), lang);
+            emailSendingService.sendEmailForRegistration(dto.getUsername(), entity.getId());
 //        }else if (PhoneUtil.isPhone(dto.getUsername())){
 //            // send SMS
 //            smsSendService.sendRegistrationSms(dto.getUsername(), lang);
 //        }
+        System.out.println("AUTH SETVICE-" + entity.getUsername() + " id - " + entity.getId());
+        return "tasdiqlash uchun emailga kod yuborildi"; //new AppResponse<>(bundleService.getMessage("email.confirm.send",lang));
+    }
 
-        return null; //new AppResponse<>(bundleService.getMessage("email.confirm.send",lang));
+    public String registrationEmailVerification(Integer profileId) {
+
+        try{
+            ProfileEntity profile = profileService.getById(profileId);
+            if (profile.getStatus().equals(GeneralStatus.IN_REGISTRATION)){
+                // 1-usulda barcha fieldlarini update qiladi
+//            profile.setStatus(GeneralStatus.ACTIVE);
+//            profileRepository.save(profile);
+                // 2-usulda faqat status update bo`ladi
+                profileRepository.changeStatus(profileId,GeneralStatus.ACTIVE);
+                return "success verification!!!";
+            }
+        }catch (RuntimeException e){
+        }
+        throw new AppBadException("verification.failed");
     }
 }
