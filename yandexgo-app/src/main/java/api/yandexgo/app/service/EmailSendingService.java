@@ -1,5 +1,6 @@
 package api.yandexgo.app.service;
 
+import api.yandexgo.app.util.JwtUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +64,7 @@ public class EmailSendingService {
                 "</body>\n" +
                 "</html>";
 
-        body = String.format(body,serverDomain, profileId);
-        System.out.println("sendEmailForRegistration -" + email + " id - " + profileId+ " subject - " + subject);
+        body = String.format(body,serverDomain, JwtUtil.encode(profileId));
         sendMimeEmail(email,subject,body);
     }
 

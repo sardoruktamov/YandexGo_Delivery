@@ -6,6 +6,8 @@ import api.yandexgo.app.enums.GeneralStatus;
 import api.yandexgo.app.enums.ProfileRole;
 import api.yandexgo.app.exceptions.AppBadException;
 import api.yandexgo.app.repository.ProfileRepository;
+import api.yandexgo.app.util.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -67,9 +69,10 @@ public class AuthService {
         return "tasdiqlash uchun emailga kod yuborildi"; //new AppResponse<>(bundleService.getMessage("email.confirm.send",lang));
     }
 
-    public String registrationEmailVerification(Integer profileId) {
+    public String registrationEmailVerification(String token) {
 
         try{
+            Integer profileId = JwtUtil.decodeVer(token);
             ProfileEntity profile = profileService.getById(profileId);
             if (profile.getStatus().equals(GeneralStatus.IN_REGISTRATION)){
                 // 1-usulda barcha fieldlarini update qiladi
@@ -79,7 +82,8 @@ public class AuthService {
                 profileRepository.changeStatus(profileId,GeneralStatus.ACTIVE);
                 return "success verification!!!";
             }
-        }catch (RuntimeException e){
+        }catch (JwtException e){
+            System.out.println("JwtException xatooooooooooooooooooooo");
         }
         throw new AppBadException("verification.failed");
     }

@@ -22,9 +22,9 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.registration(dto));
     }
 
-    @GetMapping("/registration/email-verification/{profileId}")
-    public ResponseEntity<String> emailVerification(@PathVariable("profileId") Integer profileId){
-        return ResponseEntity.ok().body(authService.registrationEmailVerification(profileId));
+    @GetMapping("/registration/email-verification/{token}")
+    public ResponseEntity<String> emailVerification(@PathVariable("token") String token){
+        return ResponseEntity.ok().body(authService.registrationEmailVerification(token));
     }
 
 }
