@@ -1,11 +1,14 @@
 package api.yandexgo.app.service;
 
+import api.yandexgo.app.dto.AuthDTO;
+import api.yandexgo.app.dto.ProfileDTO;
 import api.yandexgo.app.dto.RegistrationDTO;
 import api.yandexgo.app.entity.ProfileEntity;
 import api.yandexgo.app.enums.GeneralStatus;
 import api.yandexgo.app.enums.ProfileRole;
 import api.yandexgo.app.exceptions.AppBadException;
 import api.yandexgo.app.repository.ProfileRepository;
+import api.yandexgo.app.repository.ProfileRoleRepository;
 import api.yandexgo.app.util.JwtUtil;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +31,8 @@ public class AuthService {
     private ProfileService profileService;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-
+    @Autowired
+    private ProfileRoleRepository profileRoleRepository;
     public String registration(RegistrationDTO dto){
 
         Optional<ProfileEntity> optional = profileRepository.findByUsernameAndVisibleTrue(dto.getUsername());
@@ -72,7 +76,7 @@ public class AuthService {
     public String registrationEmailVerification(String token) {
 
         try{
-            Integer profileId = JwtUtil.decodeVer(token);
+            Integer profileId = JwtUtil.decodeRegVer(token);
             ProfileEntity profile = profileService.getById(profileId);
             if (profile.getStatus().equals(GeneralStatus.IN_REGISTRATION)){
                 // 1-usulda barcha fieldlarini update qiladi
@@ -86,5 +90,32 @@ public class AuthService {
             System.out.println("JwtException xatooooooooooooooooooooo");
         }
         throw new AppBadException("verification.failed");
+    }
+
+    public ProfileDTO login(AuthDTO dto){
+
+        Optional<ProfileEntity> optional = profileRepository.findByUsernameAndVisibleTrue(dto.getUsername());
+        if (optional.isEmpty()){
+            throw new AppBadException("Username not found");
+        }
+        ProfileEntity profile = optional.get();
+        if(!bCryptPasswordEncoder.matches(dto.getPassword(), profile.getPassword())){
+            throw new AppBadException("username or password is wrong");
+        }
+        if (!profile.getStatus().equals(GeneralStatus.ACTIVE)){
+            throw new AppBadException("status error register again");
+        }
+        return  getLoginResponse(profile);
+
+    }
+
+    public ProfileDTO getLoginResponse(ProfileEntity profile){
+        ProfileDTO response = new ProfileDTO();
+        response.setName(profile.getName());
+        response.setUsername(profile.getUsername());
+        response.setPhoneNumber(profile.getPhoneNumber());
+        response.setRoleList(profileRoleRepository.getAllRolesListByProfileId(profile.getId()));
+        response.setJwt(JwtUtil.encode(profile.getUsername(), profile.getId(),response.getRoleList()));
+        return response;
     }
 }
