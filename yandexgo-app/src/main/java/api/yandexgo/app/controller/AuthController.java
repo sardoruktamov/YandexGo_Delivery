@@ -1,6 +1,8 @@
 package api.yandexgo.app.controller;
 
 
+import api.yandexgo.app.dto.AuthDTO;
+import api.yandexgo.app.dto.ProfileDTO;
 import api.yandexgo.app.dto.RegistrationDTO;
 import api.yandexgo.app.service.AuthService;
 import jakarta.validation.Valid;
@@ -25,6 +27,11 @@ public class AuthController {
     @GetMapping("/registration/email-verification/{token}")
     public ResponseEntity<String> emailVerification(@PathVariable("token") String token){
         return ResponseEntity.ok().body(authService.registrationEmailVerification(token));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ProfileDTO> login(@Valid @RequestBody AuthDTO dto){
+        return ResponseEntity.ok().body(authService.login(dto));
     }
 
 }
