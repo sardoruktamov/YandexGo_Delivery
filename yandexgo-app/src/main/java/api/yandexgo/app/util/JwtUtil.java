@@ -25,10 +25,17 @@ public class JwtUtil {
         Map<String,String> claims = new HashMap<>();
         claims.put("roles", strRoleList);
         claims.put("id", String.valueOf(id));
+        claims.put("username", username);
+
+
+        System.out.println("username: " + username);
+        System.out.println("strRoles: " + strRoleList);
+        System.out.println("id: " + id);
 
         return Jwts
                 .builder()
-                .subject(String.valueOf(id))
+                .subject(username)
+                .claims(claims)
             .issuedAt(new Date(System.currentTimeMillis()))
             .expiration(new Date(System.currentTimeMillis() + tokenLiveTime))
             .signWith(getSignInKey())
