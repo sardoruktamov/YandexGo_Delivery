@@ -27,33 +27,43 @@ import java.util.UUID;
 @EnableWebSecurity
 public class SpringConfig {
 
+    @Autowired
+    private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        String password = UUID.randomUUID().toString();
-        System.out.println("User Password: " + password);
+    public static final String[] AUTH_WHITELIST = {
+            "api/v1//auth/**",
+            "swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**"
+    };
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        String password = UUID.randomUUID().toString();
+//        System.out.println("User Password: " + password);
+//
+//        UserDetails user = User.builder()
+//                .username("user")
+//                .password("{noop}" + password)
+//                .roles("USER")
+//                .build();
+//
+//        return new InMemoryUserDetailsManager(user);
+//    }
 
-        UserDetails user = User.builder()
-                .username("user")
-                .password("{noop}" + password)
-                .roles("USER")
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
-        return authenticationProvider;
-    }
+//    @Bean
+//    public AuthenticationProvider authenticationProvider() {
+//        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+//        authenticationProvider.setUserDetailsService(userDetailsService);
+//        authenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
+//        return authenticationProvider;
+//    }
 
 
     @Bean
@@ -63,7 +73,9 @@ public class SpringConfig {
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .anyRequest()
                     .authenticated();
-        }).formLogin(Customizer.withDefaults());
+        })
+                .userDetailsService(userDetailsService)  // authenticationProvider() methodni vazifasini bajaryapti
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.csrf(AbstractHttpConfigurer::disable); // csrf yoqilgan
         http.cors(httpSecurityCorsConfigurer -> {
@@ -79,8 +91,4 @@ public class SpringConfig {
 
         return http.build();
     }
-
-
-
-
 }
